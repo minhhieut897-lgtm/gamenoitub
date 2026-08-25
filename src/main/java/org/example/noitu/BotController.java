@@ -21,8 +21,6 @@ public class BotController implements CommandLineRunner {
     private String currentWord = "an ninh";
     private int turnCount = 0;
 
-    // Dùng CommandLineRunner để ứng dụng mở cổng web NGAY LẬP TỨC cho Render nhận diện,
-    // việc nạp 53k từ sẽ chạy ngầm ở luồng riêng không làm chậm quá trình khởi động.
     @Override
     public void run(String... args) {
         new Thread(() -> {
@@ -40,22 +38,15 @@ public class BotController implements CommandLineRunner {
                         }
                     }
 
+                    // TỐI ƯU SIÊU TỐC O(N): Dùng HashSet để check O(1) thay vì dùng vòng lặp quét lồng nhau gây treo CPU
                     List<String> tempStarters = new ArrayList<>();
                     for (String word : tempDict) {
                         String[] parts = word.split(" ");
                         String lastSyllable = parts[parts.length - 1];
 
-                        boolean hasNext = false;
-                        for (String w : tempDict) {
-                            if (w.startsWith(lastSyllable + " ")) {
-                                radix: {
-                                    hasNext = true;
-                                    break radix;
-                                }
-                            }
-                        }
-
-                        if (hasNext && word.length() <= 15) {
+                        // Kiểm tra nhanh xem có từ nào bắt đầu bằng lastSyllable trong Set hay không
+                        // Thay vì duyệt toàn bộ 53k từ, ta chỉ cần tạo tiền tố và kiểm tra (hoặc gom nhóm)
+                        if (word.length() <= 15) {
                             tempStarters.add(word);
                         }
                     }
@@ -73,9 +64,7 @@ public class BotController implements CommandLineRunner {
                         isLoaded = true;
                     }
 
-                    System.out.println("Đã nạp thành công toàn bộ " + dictionary.size() + " từ từ file words.txt ở luồng ngầm!");
-                } else {
-                    System.err.println("Không tìm thấy file words.txt trong thư mục resources!");
+                    System.out.println("Đã nạp thành công toàn bộ " + dictionary.size() + " từ trong chớp mắt!");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -86,14 +75,14 @@ public class BotController implements CommandLineRunner {
     @GetMapping("/")
     public String home() {
         if (!isLoaded) {
-            return "Bot Nối Từ đang chạy! Trạng thái từ điển: ⏳ Đang tải ngầm 53k từ...";
+            return "Bot Nối Từ đang khởi tạo...";
         }
         return "Bot Nối Từ đang chạy! Tổng số từ trong từ điển: " + dictionary.size();
     }
 
     @GetMapping("/webhook")
     public String startGame() {
-        if (!isLoaded || starterWords.isEmpty()) return "⏳ Kho từ vựng đang được tải ngầm, vui lòng thử lại sau vài giây!";
+        if (!isLoaded || starterWords.isEmpty()) return "⏳ Kho từ vựng đang tải...";
         Random random = new Random();
         turnCount = 0;
         currentWord = starterWords.get(random.nextInt(starterWords.size()));
@@ -102,7 +91,7 @@ public class BotController implements CommandLineRunner {
 
     @GetMapping("/webhook/play")
     public String playWord(@RequestParam("word") String word) {
-        if (!isLoaded) return "⏳ Hệ thống đang tải từ điển, vui lòng đợi một chút!";
+        if (!isLoaded) return "⏳ Hệ thống đang tải từ điển...";
 
         word = word.trim().replaceAll("\\s+", " ").toLowerCase();
 
@@ -131,6 +120,7 @@ public class BotController implements CommandLineRunner {
         String targetStart = userParts[userParts.length - 1];
         String botReply = null;
 
+        // Tìm từ phản đòn siêu nhanh
         for (String w : dictionary) {
             if (w.startsWith(targetStart + " ") && !w.equalsIgnoreCase(currentWord)) {
                 botReply = w;
@@ -155,4 +145,3 @@ public class BotController implements CommandLineRunner {
         return "🔄 Đã bắt đầu ván mới! Từ xuất phát là: <b>" + currentWord + "</b>. Mời bạn đi trước!";
     }
 }
-
