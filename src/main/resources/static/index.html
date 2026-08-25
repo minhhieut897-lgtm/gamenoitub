@@ -2,20 +2,25 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <!-- Thẻ meta quan trọng giúp hiển thị chuẩn trên màn hình điện thoại -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trò Chơi Nối Từ</title>
+    <title>Vua Tiếng Việt - Nối Từ</title>
+    <!-- Thêm Font chữ Playfair Display sang trọng cho tiêu đề -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: #121214;
-            color: #e1e1e6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Background Sân Khấu "Vua Tiếng Việt" (Đỏ nhung và ánh đèn chiếu) */
+            background:
+                    radial-gradient(circle at 50% 0%, #aa0000, transparent 60%),
+                    radial-gradient(circle at 50% 100%, #4a0000, #110000 100%);
+            background-color: #110000;
+            color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,114 +29,164 @@
         }
 
         .game-container {
-            background-color: #1a1a1e;
-            border: 1px solid #2d2d35;
-            border-radius: 16px;
-            padding: 24px 20px;
+            /* Hiệu ứng khung kính kết hợp viền mạ vàng ánh kim */
+            background: rgba(30, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid #d4af37; /* Màu Vàng Gold */
+            border-radius: 20px;
+            padding: 35px 25px;
             width: 100%;
-            max-width: 450px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            max-width: 480px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8),
+            0 0 20px rgba(212, 175, 55, 0.25) inset;
             text-align: center;
+            position: relative;
+        }
+
+        /* Họa tiết trang trí góc */
+        .game-container::before {
+            content: "✦";
+            position: absolute;
+            top: 15px; left: 20px;
+            color: #d4af37;
+            font-size: 20px;
+            opacity: 0.6;
+        }
+        .game-container::after {
+            content: "✦";
+            position: absolute;
+            top: 15px; right: 20px;
+            color: #d4af37;
+            font-size: 20px;
+            opacity: 0.6;
         }
 
         h2 {
-            font-size: 1.4rem;
-            margin-bottom: 20px;
-            color: #a78bfa;
-            letter-spacing: 0.5px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            /* Hiệu ứng chữ mạ vàng lấp lánh */
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
         }
 
         .message-box {
-            background-color: #25252b;
-            border-left: 4px solid #8b5cf6;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 1rem;
-            line-height: 1.5;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-left: 4px solid #d4af37;
+            border-right: 4px solid #d4af37;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #f8f9fa;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             text-align: left;
             word-break: break-word;
+        }
+
+        .message-box b {
+            color: #ffd700;
+            font-size: 1.1rem;
         }
 
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 14px 16px;
-            font-size: 1rem; /* Kích thước tối thiểu 16px để tránh iOS tự động zoom */
-            background-color: #121214;
-            border: 1px solid #3f3f46;
-            border-radius: 8px;
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            background-color: rgba(20, 20, 20, 0.9);
+            border: 2px solid #6b501c;
+            border-radius: 12px;
             color: #fff;
             outline: none;
-            transition: border-color 0.2s;
+            text-align: center;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
         }
 
         input[type="text"]:focus {
-            border-color: #8b5cf6;
+            border-color: #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+            background-color: #1a1a1a;
+        }
+
+        input[type="text"]::placeholder {
+            color: #888;
+            font-style: italic;
+            font-size: 1rem;
         }
 
         .btn-container {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
         button {
-            flex: 1;
-            padding: 14px;
-            font-size: 1rem;
-            font-weight: 600;
-            border: none;
-            border-radius: 8px;
+            padding: 15px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 12px;
             cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s;
+            transition: all 0.2s ease;
+            letter-spacing: 1.5px;
         }
 
         button:active {
-            transform: scale(0.98);
+            transform: scale(0.96);
         }
 
+        /* NÚT TRẢ LỜI (GỬI) - Thiết kế mạ vàng rực rỡ, quyền lực */
         .btn-submit {
-            background-color: #a78bfa;
-            color: #121214;
+            background: linear-gradient(135deg, #fcf6ba 0%, #bf953f 50%, #aa771c 100%);
+            color: #3b0000;
+            border: 1px solid #ffe875;
+            flex: 2;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.35);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
         }
 
         .btn-submit:hover {
-            background-color: #8b5cf6;
+            background: linear-gradient(135deg, #ffffff 0%, #fcf6ba 50%, #bf953f 100%);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.55);
         }
 
+        /* NÚT VÁN MỚI (RESET) - Thiết kế viền ánh kim trên nền đỏ hoàng gia */
         .btn-reset {
-            background-color: #dc2626;
-            color: #fff;
-            flex: 0.5;
+            background: linear-gradient(135deg, #8b0000 0%, #500000 100%);
+            color: #fcf6ba;
+            border: 2px solid #bf953f;
+            flex: 1;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
         }
 
         .btn-reset:hover {
-            background-color: #b91c1c;
+            background: linear-gradient(135deg, #a80000 0%, #700000 100%);
+            border-color: #ffd700;
+            box-shadow: 0 6px 18px rgba(170, 0, 0, 0.5);
         }
 
-        /* Tối ưu riêng cho màn hình điện thoại nhỏ */
         @media (max-width: 480px) {
             .game-container {
-                padding: 16px 12px;
+                padding: 25px 15px;
             }
-
             h2 {
-                font-size: 1.2rem;
+                font-size: 1.5rem;
             }
-
-            .message-box {
-                font-size: 0.95rem;
-                padding: 12px;
-            }
-
             input[type="text"], button {
-                padding: 12px;
-                font-size: 0.95rem;
+                font-size: 1rem;
+                padding: 14px;
             }
         }
     </style>
@@ -139,23 +194,22 @@
 <body>
 
 <div class="game-container">
-    <h2>🎮 TRÒ CHƠI NỐI TỪ</h2>
+    <h2>👑 VUA TIẾNG VIỆT 👑</h2>
 
     <div id="message" class="message-box">
-        Đang tải dữ liệu trò chơi...
+        Đang chuẩn bị ngai vàng...
     </div>
 
     <div class="input-group">
         <input type="text" id="wordInput" placeholder="Nhập từ gồm 2 tiếng..." autocomplete="off">
         <div class="btn-container">
-            <button class="btn-submit" onclick="sendWord()">Gửi</button>
-            <button class="btn-reset" onclick="resetGame()">Reset</button>
+            <button class="btn-submit" onclick="sendWord()">Trả Lời</button>
+            <button class="btn-reset" onclick="resetGame()">Ván Mới</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Gọi API khi tải trang
     window.onload = function() {
         fetch('/webhook')
             .then(response => response.text())
@@ -164,7 +218,6 @@
             });
     };
 
-    // Gửi từ khi bấm nút Gửi hoặc nhấn phím Enter
     function sendWord() {
         const word = document.getElementById('wordInput').value;
         if (!word.trim()) return;
@@ -188,7 +241,6 @@
             });
     }
 
-    // Lắng nghe sự kiện nhấn Enter trên bàn phím điện thoại/máy tính
     document.getElementById("wordInput").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             sendWord();
