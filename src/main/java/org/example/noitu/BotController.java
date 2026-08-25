@@ -11,17 +11,14 @@ import java.util.Random;
 @RestController
 public class BotController {
 
-    // Kho từ vựng khổng lồ theo chủ đề Vua Tiếng Việt
+    // Kho từ vựng đầy đủ
     private final List<String> dictionary = Arrays.asList(
-            // Vần A - B - C
             "an toàn", "an ninh", "an ủi", "áp lực", "ẩn ý", "áo dài", "áo ấm", "âm thanh", "âm nhạc", "ánh sáng",
             "bà con", "ba ba", "bà ngoại", "bà nội", "bác sĩ", "bạc đãi", "bạch tuộc", "bàn bạc",
             "bàn chân", "bàn ghế", "bàn là", "bàn tay", "bản sắc", "bản tin", "bảng đen", "bánh chưng", "bánh dày", "bánh mì",
             "bảo tàng", "bảo vệ", "bắc cầu", "bắc hải", "bập bẹ", "bật mí", "bầu trời", "bầu bạn", "béo tốt", "bênh vực",
             "bình an", "bình minh", "bình tĩnh", "bí ẩn", "bí mật", "bơ vơ", "bờ biển", "bờ vực", "bụi bặm", "buồn bã",
             "buồn vui", "buổi chiều", "buổi sáng", "buổi trưa", "búp bê", "bứt rứt", "bước chân", "bướng bỉnh",
-
-            // Vần C - D - Đ
             "ca dao", "ca hát", "ca sĩ", "cá chép", "cá heo", "cá mập", "cá voi", "can đảm", "can thiệp", "canh cánh",
             "cao cấp", "cao ngạo", "cao ốc", "cào cào", "càu nhàu", "câu cá", "câu lạc bộ", "cầu chì", "cầu lông", "cầu vồng",
             "cây cối", "cây cỏ", "cha mẹ", "chai lọ", "chăm chỉ", "chăm sóc", "chân thành", "chân tay", "chấp nhận", "chất phác",
@@ -29,8 +26,6 @@ public class BotController {
             "chuẩn bị", "chuồn chuồn", "chuyện trò", "chữ viết", "co giật", "co ro", "cơ bắp", "cơ hội", "cơ sở", "con cháu",
             "con đường", "con người", "côn trùng", "công bằng", "công nghệ", "công nhân", "công việc", "cồng kềnh", "cốt lõi", "cố gắng",
             "cổ kính", "cổ vũ", "cục cằn", "cuộc đời", "cuộc sống", "cuốn hút", "cuộn tròn", "cười duyên", "cương quyết", "cương vị",
-
-            // Vần D - Đ
             "da dẻ", "da cam", "da thịt", "dài dòng", "dăm ba", "dân cư", "dân gian", "dân tộc", "dâng hiến", "dấu hiệu",
             "dấu vết", "dầu gió", "dầu khí", "dạy học", "dăm bông", "dần dần", "dâng trào", "dập dềnh", "dễ dãi", "dễ chịu",
             "dễ thương", "du lịch", "du mục", "du xuân", "dung dịch", "dũng cảm", "dữ dội", "dư dả", "dư âm", "dương lịch",
@@ -39,8 +34,6 @@ public class BotController {
             "đập phá", "đất nước", "đầy đủ", "đẹp đẽ", "đêm ngày", "đêm tối", "đi đứng", "đi lại", "điểm mấu", "điểm số",
             "điện ảnh", "điện thoại", "điều kiện", "định mệnh", "đoàn kết", "đoán mò", "đỏ rực", "đói kém", "đơn côi", "đơn giản",
             "đời sống", "đu đủ", "đúng đắn", "đường đi", "đường phố", "đương đầu", "được việc",
-
-            // Vần G - H - K
             "gà gô", "gà trống", "gác xép", "gai góc", "giao lưu", "giảm giá", "gian khổ", "gian nan", "giang sơn", "giao tiếp",
             "giấu giếm", "giết chóc", "giễu cợt", "giảm sút", "giản dị", "giáo dục", "giáo sư", "giàu có", "giấc mơ", "giếng nước",
             "giữ gìn", "giữa đường", "giúp đỡ", "gia đình", "gia tài", "gia vị", "gọn gàng", "gọi điện", "gù lưng", "gửi gắm",
@@ -50,8 +43,6 @@ public class BotController {
             "hôm nay", "hồng hào", "hợp tác", "hờn dỗi", "hướng dẫn", "hướng dương", "hương vị", "hưu trí", "hy sinh", "hy vọng",
             "kỳ bí", "kỳ diệu", "kỹ sư", "kỷ niệm", "kỷ luật", "kẻ cắp", "kéo co", "kế hoạch", "kết quả", "khen ngợi",
             "kho báu", "khoa học", "khoẻ mạnh", "khôn ngoan", "không khí", "không gian", "khó khăn", "khởi nghiệp", "khủng long", "khuyến khích",
-
-            // Vần L - M - N - P
             "la đà", "la hét", "lá cờ", "lá gan", "lạc quan", "lai lịch", "làm ăn", "làm việc", "làng xóm", "lan tràn",
             "láng giềng", "lanh lợi", "lão hóa", "lễ hội", "lễ phép", "lịch sự", "lịch trình", "liên kết", "liên lạc", "long trọng",
             "lòng vòng", "lợi ích", "lớn lao", "lời nói", "lương tâm", "lướt ván", "lược sử", "lũ lụt", "luyện tập", "lững lờ",
@@ -63,8 +54,6 @@ public class BotController {
             "nghiêm túc", "ngoại ô", "ngọc trai", "nguồn gốc", "người lớn", "người mẫu", "nhà cửa", "nhà ga", "nhà nước", "nhà thơ",
             "nhanh nhẹn", "nhiệt huyết", "nhịp điệu", "nhỏ nhẻ", "nhung lụa", "niềm tin", "no đủ", "nô đùa", "nội bộ",
             "nội trợ", "nông dân", "nông nghiệp", "nước mắt", "nước ngọt", "nước sôi", "nước rút", "nước uống", "nứt nẻ",
-
-            // Vần Q - S - T - V - X
             "qua lại", "quá khứ", "quà cáp", "quản lý", "quảng cáo", "quảng đại", "quang cảnh", "quốc gia", "quốc tế",
             "ra vào", "ra đi", "rừng rậm", "rực rỡ", "rắn rỏi", "rất tốt", "rộn ràng", "rộng rãi", "rút gọn", "rũ rượi",
             "sa mạc", "sa sút", "sẵn sàng", "sáng chói", "sáng tạo", "sắp xếp", "sắc bén", "sắp tới", "sắt đá", "siêng năng",
@@ -79,63 +68,93 @@ public class BotController {
             "xa xôi", "xã hội", "xác định", "xanh biếc", "xinh đẹp", "xoay sở", "xuất sắc", "xuất chúng", "xung quanh", "xứng đáng"
     );
 
+    // Danh sách từ thân thuộc cho 3 lượt đầu tiên
+    private final List<String> simpleStarterWords = Arrays.asList(
+            "bà con", "ba ba", "bác sĩ", "bàn tay", "bánh mì", "bảo vệ", "bầu trời",
+            "ca sĩ", "cá chép", "cá heo", "cây cối", "cha mẹ", "chăm chỉ", "chân thành",
+            "da dẻ", "dễ thương", "đá banh", "đất nước", "đẹp đẽ", "điện thoại",
+            "gà trống", "gia đình", "gọi điện", "hà mã", "hành động", "hạnh phúc", "hoa hồng",
+            "lá cờ", "làm việc", "làng xóm", "máy bay", "máy tính", "mưa gió", "năm tháng",
+            "nhà cửa", "nước ngọt", "quà cáp", "sông ngòi", "thả diều", "vui vẻ"
+    );
+
     private String currentWord = "";
+    private int turnCount = 0; // Đếm số lượt chơi
 
     @GetMapping("/webhook")
     public String startGame() {
         Random random = new Random();
-        currentWord = dictionary.get(random.nextInt(dictionary.size()));
+        turnCount = 0;
+        currentWord = simpleStarterWords.get(random.nextInt(simpleStarterWords.size()));
         return "Trò chơi bắt đầu! Từ đầu tiên là: <b>" + currentWord + "</b>. Hãy nối tiếp từ cuối!";
     }
 
     @GetMapping("/webhook/play")
     public String playWord(@RequestParam("word") String word) {
-        word = word.trim().toLowerCase();
+        word = word.trim().replaceAll("\\s+", " ").toLowerCase();
 
-        // Tách tiếng cuối của từ hiện tại và tiếng đầu của từ người chơi
         String[] currentParts = currentWord.split(" ");
         String lastSyllableOfCurrent = currentParts[currentParts.length - 1];
 
         String[] userParts = word.split(" ");
 
-        // Kiểm tra định dạng từ gồm 2 tiếng
+        // 1. Kiểm tra định dạng VIP (đúng 2 tiếng)
         if (userParts.length != 2) {
-            return "❌ Từ không hợp lệ! Vui lòng nhập đúng <b>định dạng gồm 2 tiếng</b> (Ví dụ: <i>an toàn</i>).<br>Từ hiện tại: <b>" + currentWord + "</b>";
+            return "❌ <b>Lỗi định dạng VIP:</b> Vui lòng nhập chính xác <b>một từ gồm đúng 2 tiếng</b> (Ví dụ: <i>an toàn</i>).<br>Từ hiện tại: <b>" + currentWord + "</b>";
         }
 
         String firstSyllableOfUser = userParts[0];
 
-        // Kiểm tra quy tắc nối từ
+        // 2. Kiểm tra luật nối từ
         if (!firstSyllableOfUser.equalsIgnoreCase(lastSyllableOfCurrent)) {
-            return "❌ Sai luật nối từ! Từ của bạn phải bắt đầu bằng tiếng <b>'" + lastSyllableOfCurrent + "'</b>.<br>Từ hiện tại: <b>" + currentWord + "</b>";
+            return "❌ <b>Sai luật nối từ!</b> Từ của bạn phải bắt đầu bằng tiếng <b>'" + lastSyllableOfCurrent + "'</b>.<br>Từ hiện tại: <b>" + currentWord + "</b>";
         }
 
-        // Cập nhật từ mới của người chơi
-        currentWord = word;
+        // 3. Kiểm tra từ điển hợp lệ
+        if (!dictionary.contains(word)) {
+            return "❌ <b>Từ không hợp lệ!</b> Từ này không có trong kho từ vựng tiếng Việt của game.<br>Từ hiện tại: <b>" + currentWord + "</b>";
+        }
 
-        // Bot tìm từ tiếp theo bắt đầu bằng tiếng cuối của người chơi
+        currentWord = word;
+        turnCount++; // Tăng số lượt
+
         String targetStart = userParts[userParts.length - 1];
         String botReply = null;
 
-        for (String w : dictionary) {
-            if (w.startsWith(targetStart + " ") && !w.equalsIgnoreCase(currentWord)) {
-                botReply = w;
-                break;
+        // Ưu tiên từ đơn giản trong 3 lượt đầu
+        if (turnCount < 3) {
+            for (String w : simpleStarterWords) {
+                if (w.startsWith(targetStart + " ") && !w.equalsIgnoreCase(currentWord) && dictionary.contains(w)) {
+                    botReply = w;
+                    break;
+                }
             }
         }
 
+        // Nếu hết lượt đầu hoặc không tìm thấy trong danh sách đơn giản thì quét toàn bộ kho từ
         if (botReply == null) {
-            return "🎉 Chúc mừng bạn! Bạn đã làm bot phải chịu thua vì hết từ nối với tiếng <b>'" + targetStart + "'</b>!";
+            for (String w : dictionary) {
+                if (w.startsWith(targetStart + " ") && !w.equalsIgnoreCase(currentWord)) {
+                    botReply = w;
+                    break;
+                }
+            }
+        }
+
+        // TRƯỜNG HỢP 1: Người chơi thắng
+        if (botReply == null) {
+            return "VICTORY:🎉 Bạn đã thắng tôi rồi!";
         }
 
         currentWord = botReply;
-        return "✅ Chính xác! Bot nối tiếp từ: <b>" + botReply + "</b>.<br>Lượt bạn, nối từ bắt đầu bằng tiếng: <b>" + botReply.split(" ")[1] + "</b>";
+        return "✅ Bot nối tiếp: <b>" + botReply + "</b>. Lượt bạn (nối chữ: <b>" + botReply.split(" ")[1] + "</b>)";
     }
 
     @GetMapping("/webhook/reset")
     public String resetGame() {
         Random random = new Random();
-        currentWord = dictionary.get(random.nextInt(dictionary.size()));
+        turnCount = 0;
+        currentWord = simpleStarterWords.get(random.nextInt(simpleStarterWords.size()));
         return "🔄 Đã bắt đầu ván mới! Từ xuất phát là: <b>" + currentWord + "</b>. Mời bạn đi trước!";
     }
 }
