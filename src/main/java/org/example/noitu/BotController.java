@@ -11,9 +11,9 @@ import java.util.Random;
 @RestController
 public class BotController {
 
-    // Kho từ vựng đầy đủ (Đã cập nhật thêm vô số từ màu sắc và sự vật để người chơi nhập vào là chuẩn xác 100%)
+    // Kho từ vựng đầy đủ (Chứa toàn bộ từ hợp lệ để người chơi nối)
     private final List<String> dictionary = Arrays.asList(
-            // Từ vựng cũ sẵn có
+            // Kho từ vựng nền tảng
             "an toàn", "an ninh", "an ủi", "áp lực", "ẩn ý", "áo dài", "áo ấm", "âm thanh", "âm nhạc", "ánh sáng",
             "bà con", "ba ba", "bà ngoại", "bà nội", "bác sĩ", "bạc đãi", "bạch tuộc", "bàn bạc",
             "bàn chân", "bàn ghế", "bàn là", "bàn tay", "bản sắc", "bản tin", "bảng đen", "bánh chưng", "bánh dày", "bánh mì",
@@ -68,20 +68,38 @@ public class BotController {
             "vinh quang", "vô cùng", "vô địch", "vô hình", "vui sướng", "vui vẻ", "vườn tược", "vương giả", "vương quốc", "vững vàng",
             "xa xôi", "xã hội", "xác định", "xanh biếc", "xinh đẹp", "xoay sở", "xuất sắc", "xuất chúng", "xung quanh", "xứng đáng",
 
-            // === BỔ SUNG: CÁC TÍNH TỪ CHỈ MÀU SẮC ĐỂ NGƯỜI CHƠI NHẬP VÀO LÀ CHUẨN XÁC ===
+            // 1. Tính từ màu sắc
             "hồng nhạt", "hồng phấn", "hồng cánh sen", "hồng đậm", "xanh ngọc", "xanh rêu", "xanh biếc", "xanh dương",
             "xanh lá", "xanh non", "vàng chóe", "vàng chanh", "vàng nghệ", "vàng hoe", "vàng tươi", "đỏ thẫm", "đỏ tươi",
             "đỏ au", "đỏ chót", "tím rịm", "tím biếc", "tím huế", "cam sáng", "cam đất", "nâu đất", "nâu sẫm", "xám tro",
             "trắng muốt", "trắng phau", "trắng tinh", "đen nhẻm", "đen thui", "đen nhánh",
 
-            // === BỔ SUNG: CÁC TỪ CHỈ SỰ VẬT, ĐỒ DÙNG, CÔNG TRÌNH QUEN THUỘC ===
+            // 2. Sự vật, đồ dùng, công trình
             "cáp treo", "cầu thang", "thang máy", "máy giặt", "tủ lạnh", "điều hòa", "quạt máy", "bóng đèn", "máy sấy",
             "bình nóng", "nồi cơm", "lò vi", "lò nướng", "bếp ga", "bếp từ", "xe đạp", "xe máy", "xe hơi", "tàu hỏa",
             "máy bay", "thuyền máy", "cầu vượt", "hầm chui", "nhà cao", "công viên", "bệnh viện", "trường học", "thư viện",
-            "bàn học", "ghế sofa", "giường ngủ", "gối ôm", "chăn bông", "màn cửa", "khung tranh", "đồng hồ", "máy ảnh"
+            "bàn học", "ghế sofa", "giường ngủ", "gối ôm", "chăn bông", "màn cửa", "khung tranh", "đồng hồ", "máy ảnh",
+
+            // 3. Chất liệu / Cấu tạo
+            "cửa gỗ", "cầu sắt", "nồi nhôm", "áo len", "nhà kính", "bàn đá", "dép nhựa", "thìa inox", "nhà gỗ", "cầu tre",
+            "cửa kính", "bàn gỗ", "ghế nhựa", "tường gạch", "cổng sắt", "nhà gạch", "áo cotton", "giày da", "túi vải",
+            "tủ gỗ", "thuyền gỗ", "đũa gỗ", "sàn gỗ", "ấm đồng", "khung thép", "đinh sắt", "tượng đá", "đĩa gốm", "ấm đất",
+
+            // 4. Trạng thái / Đặc điểm
+            "cơm nóng", "kem lạnh", "thịt nguội", "nước lạnh", "chè nóng", "nước ấm", "gió lạnh", "trời mưa", "nắng gắt",
+            "trời oi", "trưa nắng", "rét đậm", "sương mù", "gió nhẹ", "mưa rào", "cá tươi", "thịt tươi", "sữa chua",
+            "canh ngọt", "cơm khô", "bún tươi", "bánh giòn", "quả chín",
+
+            // 5. Hình dạng / Kích thước
+            "bàn tròn", "ghế dài", "nhà cao", "đường dài", "ô vuông", "bóng tròn", "cột cao", "hộp vuông", "vòng tròn",
+            "hình vuông", "cổng rộng", "sân rộng", "hẻm hẹp", "ao sâu",
+
+            // 6. === NHÓM TÍNH TỪ DẠNG ĐẶC BIỆT (CHỈ ĐỂ NGƯỜI CHƠI NHẬP, BOT KHÔNG LẤY RA ĐỀ) ===
+            "cao vút", "cao tít", "đầy đặn", "ốm yếu", "gầy gò", "gầy guộc", "mong manh", "thấp bé", "mập mạp",
+            "béo ú", "thanh mảnh", "sừng sững", "mũm mĩm", "gầy còm", "dong dỏng"
     );
 
-    // Danh sách từ thân thuộc cho 3 lượt đầu tiên
+    // Danh sách từ thân thuộc cho BOT chọn ra đề (HOÀN TOÀN KHÔNG CHỨA các từ tính từ đặc biệt)
     private final List<String> simpleStarterWords = Arrays.asList(
             "bà con", "ba ba", "bác sĩ", "bàn tay", "bánh mì", "bảo vệ", "bầu trời",
             "ca sĩ", "cá chép", "cá heo", "cây cối", "cha mẹ", "chăm chỉ", "chân thành",
@@ -89,7 +107,8 @@ public class BotController {
             "gà trống", "gia đình", "gọi điện", "hà mã", "hành động", "hạnh phúc", "hoa hồng",
             "lá cờ", "làm việc", "làng xóm", "máy bay", "máy tính", "mưa gió", "năm tháng",
             "nhà cửa", "nước ngọt", "quà cáp", "sông ngòi", "thả diều", "vui vẻ",
-            "hồng nhạt", "xanh ngọc", "vàng chanh", "đỏ tươi", "cáp treo", "cầu thang", "thang máy", "máy giặt"
+            "hồng nhạt", "xanh ngọc", "vàng chanh", "đỏ tươi", "cáp treo", "cầu thang", "thang máy", "máy giặt",
+            "cơm nóng", "cửa gỗ", "bàn tròn", "kem lạnh", "bàn ghế", "xe đạp"
     );
 
     private String currentWord = "";
@@ -124,7 +143,7 @@ public class BotController {
             return "❌ <b>Sai luật nối từ!</b> Từ của bạn phải bắt đầu bằng tiếng <b>'" + lastSyllableOfCurrent + "'</b>.<br>Từ hiện tại: <b>" + currentWord + "</b>";
         }
 
-        // 3. Kiểm tra từ điển hợp lệ (Người chơi gõ màu sắc hoặc sự vật có trong list sẽ được nhận diện đúng ở đây)
+        // 3. Kiểm tra từ điển hợp lệ
         if (!dictionary.contains(word)) {
             return "❌ <b>Từ không hợp lệ!</b> Từ này không có trong kho từ vựng tiếng Việt của game.<br>Từ hiện tại: <b>" + currentWord + "</b>";
         }
@@ -135,7 +154,7 @@ public class BotController {
         String targetStart = userParts[userParts.length - 1];
         String botReply = null;
 
-        // Ưu tiên từ đơn giản trong 3 lượt đầu
+        // Ưu tiên chọn từ dễ trong 3 lượt đầu
         if (turnCount < 3) {
             for (String w : simpleStarterWords) {
                 if (w.startsWith(targetStart + " ") && !w.equalsIgnoreCase(currentWord) && dictionary.contains(w)) {
@@ -145,7 +164,7 @@ public class BotController {
             }
         }
 
-        // Nếu hết lượt đầu hoặc không tìm thấy trong danh sách đơn giản thì quét toàn bộ kho từ
+        // Sau 3 lượt hoặc nếu từ đơn giản không tìm thấy, bot quét danh sách dictionary
         if (botReply == null) {
             for (String w : dictionary) {
                 if (w.startsWith(targetStart + " ") && !w.equalsIgnoreCase(currentWord)) {
