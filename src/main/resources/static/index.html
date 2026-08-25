@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <!-- Thẻ meta quan trọng giúp hiển thị chuẩn trên màn hình điện thoại -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò Chơi Nối Từ</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #121214;
+            color: #e1e1e6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .game-container {
+            background-color: #1a1a1e;
+            border: 1px solid #2d2d35;
+            border-radius: 16px;
+            padding: 24px 20px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #a78bfa;
+            letter-spacing: 0.5px;
+        }
+
+        .message-box {
+            background-color: #25252b;
+            border-left: 4px solid #8b5cf6;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+            text-align: left;
+            word-break: break-word;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1rem; /* Kích thước tối thiểu 16px để tránh iOS tự động zoom */
+            background-color: #121214;
+            border: 1px solid #3f3f46;
+            border-radius: 8px;
+            color: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #8b5cf6;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-submit {
+            background-color: #a78bfa;
+            color: #121214;
+        }
+
+        .btn-submit:hover {
+            background-color: #8b5cf6;
+        }
+
+        .btn-reset {
+            background-color: #dc2626;
+            color: #fff;
+            flex: 0.5;
+        }
+
+        .btn-reset:hover {
+            background-color: #b91c1c;
+        }
+
+        /* Tối ưu riêng cho màn hình điện thoại nhỏ */
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 16px 12px;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            .message-box {
+                font-size: 0.95rem;
+                padding: 12px;
+            }
+
+            input[type="text"], button {
+                padding: 12px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h2>🎮 TRÒ CHƠI NỐI TỪ</h2>
+
+    <div id="message" class="message-box">
+        Đang tải dữ liệu trò chơi...
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="wordInput" placeholder="Nhập từ gồm 2 tiếng..." autocomplete="off">
+        <div class="btn-container">
+            <button class="btn-submit" onclick="sendWord()">Gửi</button>
+            <button class="btn-reset" onclick="resetGame()">Reset</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Gọi API khi tải trang
+    window.onload = function() {
+        fetch('/webhook')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('message').innerHTML = data;
+            });
+    };
+
+    // Gửi từ khi bấm nút Gửi hoặc nhấn phím Enter
+    function sendWord() {
+        const word = document.getElementById('wordInput').value;
+        if (!word.trim()) return;
+
+        fetch('/webhook/play?word=' + encodeURIComponent(word))
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('message').innerHTML = data;
+                document.getElementById('wordInput').value = '';
+                document.getElementById('wordInput').focus();
+            });
+    }
+
+    function resetGame() {
+        fetch('/webhook/reset')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('message').innerHTML = data;
+                document.getElementById('wordInput').value = '';
+                document.getElementById('wordInput').focus();
+            });
+    }
+
+    // Lắng nghe sự kiện nhấn Enter trên bàn phím điện thoại/máy tính
+    document.getElementById("wordInput").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            sendWord();
+        }
+    });
+</script>
+</body>
+</html>
