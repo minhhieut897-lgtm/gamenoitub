@@ -1,6 +1,6 @@
 package org.example.noitu;
 
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,66 +12,80 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @RestController
-public class BotController {
+public class BotController implements CommandLineRunner {
 
     private Set<String> dictionary = new HashSet<>();
     private List<String> simpleStarterWords = new ArrayList<>();
 
-    private String currentWord = "";
+    private String currentWord = "an toàn";
     private int turnCount = 0;
+    private boolean isLoaded = false;
 
-    @PostConstruct
-    public void initDictionary() {
-        try {
-            ClassPathResource resource = new ClassPathResource("words.txt");
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim().toLowerCase();
-                    if (!line.isEmpty() && line.split("\\s+").length == 2) {
-                        dictionary.add(line);
-                    }
-                }
-            }
+    // Dùng CommandLineRunner để ứng dụng mở cổng web NGAY LẬP TỨC,
+    // việc đọc 53k từ sẽ chạy ở luồng nền không làm block server trên Render nữa.
+    @Override
+    public void run(String... args) {
+        new Thread(() -> {
+            try {
+                ClassPathResource resource = new ClassPathResource("words.txt");
+                Set<String> tempDict = new HashSet<>();
 
-            // Tối ưu hóa siêu tốc: Dùng cấu trúc Set để check từ nối tiếp O(1) thay vì quét mảng chậm chạp
-            for (String word : dictionary) {
-                String[] parts = word.split(" ");
-                String lastSyllable = parts[parts.length - 1];
-
-                // Kiểm tra xem có từ nào trong từ điển bắt đầu bằng lastSyllable không
-                boolean hasNext = false;
-                for (String w : dictionary) {
-                    if (w.startsWith(lastSyllable + " ")) {
-                        hasNext = true;
-                        break;
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim().toLowerCase();
+                        if (!line.isEmpty() && line.split("\\s+").length == 2) {
+                            tempDict.add(line);
+                        }
                     }
                 }
 
-                if (hasNext && word.length() <= 15) {
-                    simpleStarterWords.add(word);
+                List<String> tempStarters = new ArrayList<>();
+                for (String word : tempDict) {
+                    String[] parts = word.split(" ");
+                    String lastSyllable = parts[parts.length - 1];
+
+                    boolean hasNext = false;
+                    for (String w : tempDict) {
+                        if (w.startsWith(lastSyllable + " ")) {
+                            hasNext = true;
+                            break;
+                        }
+                    }
+
+                    if (hasNext && word.length() <= 15) {
+                        tempStarters.add(word);
+                    }
                 }
+
+                if (tempStarters.isEmpty()) {
+                    tempStarters.addAll(tempDict);
+                }
+
+                synchronized (this) {
+                    dictionary = tempDict;
+                    simpleStarterWords = tempStarters;
+                    if (!simpleStarterWords.isEmpty()) {
+                        currentWord = simpleStarterWords.get(new Random().nextInt(simpleStarterWords.size()));
+                    }
+                    isLoaded = true;
+                }
+
+                System.out.println("Đã nạp ngầm thành công " + dictionary.size() + " từ!");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-            if (simpleStarterWords.isEmpty()) {
-                simpleStarterWords.addAll(dictionary); // Fallback phòng hờ
-            }
-
-            System.out.println("Đã nạp thành công " + dictionary.size() + " từ!");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        }).start();
     }
 
     @GetMapping("/")
     public String home() {
-        return "Bot Nối Từ Spring Boot đang chạy thành công trên Render!";
+        return "Bot Nối Từ đang chạy! Trạng thái từ điển: " + (isLoaded ? "Đã sẵn sàng (" + dictionary.size() + " từ)" : "Đang tải ngầm...");
     }
 
     @GetMapping("/webhook")
     public String startGame() {
-        if (simpleStarterWords.isEmpty()) return "Kho từ vựng chưa sẵn sàng!";
+        if (!isLoaded || simpleStarterWords.isEmpty()) return "⏳ Kho từ vựng đang được tải ở chế độ nền, vui lòng thử lại sau vài giây!";
         Random random = new Random();
         turnCount = 0;
         currentWord = simpleStarterWords.get(random.nextInt(simpleStarterWords.size()));
@@ -80,6 +94,8 @@ public class BotController {
 
     @GetMapping("/webhook/play")
     public String playWord(@RequestParam("word") String word) {
+        if (!isLoaded) return "⏳ Hệ thống đang khởi tạo từ điển, vui lòng đợi một chút!";
+
         word = word.trim().replaceAll("\\s+", " ").toLowerCase();
 
         String[] currentParts = currentWord.split(" ");
@@ -124,7 +140,7 @@ public class BotController {
 
     @GetMapping("/webhook/reset")
     public String resetGame() {
-        if (simpleStarterWords.isEmpty()) return "Kho từ vựng chưa sẵn sàng!";
+        if (!isLoaded || simpleStarterWords.isEmpty()) return "⏳ Kho từ vựng đang tải...";
         Random random = new Random();
         turnCount = 0;
         currentWord = simpleStarterWords.get(random.nextInt(simpleStarterWords.size()));
