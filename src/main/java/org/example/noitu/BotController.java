@@ -1,182 +1,141 @@
 package org.example.noitu;
 
-import jakarta.servlet.http.HttpSession;
-import org.springframework.web.bind.annotation.*;
-import java.util.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 @RestController
-@RequestMapping("/webhook")
 public class BotController {
 
-    private final Map<String, List<String>> wordDictionary = new HashMap<>();
-    private final Random random = new Random();
+    // Kho từ vựng khổng lồ theo chủ đề Vua Tiếng Việt
+    private final List<String> dictionary = Arrays.asList(
+            // Vần A - B - C
+            "an toàn", "an ninh", "an ủi", "áp lực", "ẩn ý", "áo dài", "áo ấm", "âm thanh", "âm nhạc", "ánh sáng",
+            "bà con", "ba ba", "bà ngoại", "bà nội", "bác sĩ", "bạc đãi", "bạch tuộc", "bàn bạc",
+            "bàn chân", "bàn ghế", "bàn là", "bàn tay", "bản sắc", "bản tin", "bảng đen", "bánh chưng", "bánh dày", "bánh mì",
+            "bảo tàng", "bảo vệ", "bắc cầu", "bắc hải", "bập bẹ", "bật mí", "bầu trời", "bầu bạn", "béo tốt", "bênh vực",
+            "bình an", "bình minh", "bình tĩnh", "bí ẩn", "bí mật", "bơ vơ", "bờ biển", "bờ vực", "bụi bặm", "buồn bã",
+            "buồn vui", "buổi chiều", "buổi sáng", "buổi trưa", "búp bê", "bứt rứt", "bước chân", "bướng bỉnh",
 
-    public BotController() {
-        initializeDictionary();
+            // Vần C - D - Đ
+            "ca dao", "ca hát", "ca sĩ", "cá chép", "cá heo", "cá mập", "cá voi", "can đảm", "can thiệp", "canh cánh",
+            "cao cấp", "cao ngạo", "cao ốc", "cào cào", "càu nhàu", "câu cá", "câu lạc bộ", "cầu chì", "cầu lông", "cầu vồng",
+            "cây cối", "cây cỏ", "cha mẹ", "chai lọ", "chăm chỉ", "chăm sóc", "chân thành", "chân tay", "chấp nhận", "chất phác",
+            "chật chội", "chầu chực", "chế biến", "chế độ", "chiến thắng", "chiến tranh", "chim chóc", "chính trị", "chóng mặt", "chu đáo",
+            "chuẩn bị", "chuồn chuồn", "chuyện trò", "chữ viết", "co giật", "co ro", "cơ bắp", "cơ hội", "cơ sở", "con cháu",
+            "con đường", "con người", "côn trùng", "công bằng", "công nghệ", "công nhân", "công việc", "cồng kềnh", "cốt lõi", "cố gắng",
+            "cổ kính", "cổ vũ", "cục cằn", "cuộc đời", "cuộc sống", "cuốn hút", "cuộn tròn", "cười duyên", "cương quyết", "cương vị",
+
+            // Vần D - Đ
+            "da dẻ", "da cam", "da thịt", "dài dòng", "dăm ba", "dân cư", "dân gian", "dân tộc", "dâng hiến", "dấu hiệu",
+            "dấu vết", "dầu gió", "dầu khí", "dạy học", "dăm bông", "dần dần", "dâng trào", "dập dềnh", "dễ dãi", "dễ chịu",
+            "dễ thương", "du lịch", "du mục", "du xuân", "dung dịch", "dũng cảm", "dữ dội", "dư dả", "dư âm", "dương lịch",
+            "đá banh", "đá quý", "đà điểu", "đại gia", "đại dương", "đại học", "đại lý", "đảm bảo", "đảm đang", "đầm lầy",
+            "đất đai", "đất liền", "đặc biệt", "đặc sản", "đăng ký", "đăng quang", "đắm say", "đầu bếp", "đầu độc", "đầu tiên",
+            "đập phá", "đất nước", "đầy đủ", "đẹp đẽ", "đêm ngày", "đêm tối", "đi đứng", "đi lại", "điểm mấu", "điểm số",
+            "điện ảnh", "điện thoại", "điều kiện", "định mệnh", "đoàn kết", "đoán mò", "đỏ rực", "đói kém", "đơn côi", "đơn giản",
+            "đời sống", "đu đủ", "đúng đắn", "đường đi", "đường phố", "đương đầu", "được việc",
+
+            // Vần G - H - K
+            "gà gô", "gà trống", "gác xép", "gai góc", "giao lưu", "giảm giá", "gian khổ", "gian nan", "giang sơn", "giao tiếp",
+            "giấu giếm", "giết chóc", "giễu cợt", "giảm sút", "giản dị", "giáo dục", "giáo sư", "giàu có", "giấc mơ", "giếng nước",
+            "giữ gìn", "giữa đường", "giúp đỡ", "gia đình", "gia tài", "gia vị", "gọn gàng", "gọi điện", "gù lưng", "gửi gắm",
+            "hà mã", "hà tiện", "hạ bệ", "hạ cánh", "hạ long", "hải sản", "hải tặc", "hải yến", "hào hứng", "hào phóng",
+            "hành động", "hành khách", "hành tinh", "hạnh phúc", "hấp dẫn", "hắt hiu", "hết lòng", "hiền hòa", "hiền lành", "hiểu biết",
+            "hiệu quả", "hoa hồng", "hoa quả", "hoài niệm", "hoàn hảo", "hoảng sợ", "hoạt động", "họa sĩ", "học hỏi", "hội chợ",
+            "hôm nay", "hồng hào", "hợp tác", "hờn dỗi", "hướng dẫn", "hướng dương", "hương vị", "hưu trí", "hy sinh", "hy vọng",
+            "kỳ bí", "kỳ diệu", "kỹ sư", "kỷ niệm", "kỷ luật", "kẻ cắp", "kéo co", "kế hoạch", "kết quả", "khen ngợi",
+            "kho báu", "khoa học", "khoẻ mạnh", "khôn ngoan", "không khí", "không gian", "khó khăn", "khởi nghiệp", "khủng long", "khuyến khích",
+
+            // Vần L - M - N - P
+            "la đà", "la hét", "lá cờ", "lá gan", "lạc quan", "lai lịch", "làm ăn", "làm việc", "làng xóm", "lan tràn",
+            "láng giềng", "lanh lợi", "lão hóa", "lễ hội", "lễ phép", "lịch sự", "lịch trình", "liên kết", "liên lạc", "long trọng",
+            "lòng vòng", "lợi ích", "lớn lao", "lời nói", "lương tâm", "lướt ván", "lược sử", "lũ lụt", "luyện tập", "lững lờ",
+            "ma quỷ", "ma lực", "mạ kẽm", "mang vác", "manh mối", "màu mỡ", "màu sắc", "máy bay", "máy tính", "mây mù",
+            "mật mã", "mật ong", "mẫu giáo", "mẫu mã", "mận đào", "mất mát", "mật thiết", "mềm mại", "mến khách", "miền nam",
+            "miền trung", "miền bắc", "miền núi", "miễn phí", "minh bạch", "mơ màng", "mơ ước", "mở cửa", "mở rộng", "mưa gió",
+            "mưu trí", "mực tàu", "muôn màu", "muôn năm", "mượt mà", "na ná", "náo động", "nam giới", "năm tháng",
+            "năng lực", "năng động", "nắng ấm", "nền tảng", "nếp sống", "nết na", "ngà voi", "ngạc nhiên", "ngân hàng", "ngây thơ",
+            "nghiêm túc", "ngoại ô", "ngọc trai", "nguồn gốc", "người lớn", "người mẫu", "nhà cửa", "nhà ga", "nhà nước", "nhà thơ",
+            "nhanh nhẹn", "nhiệt huyết", "nhịp điệu", "nhỏ nhẻ", "nhung lụa", "niềm tin", "no đủ", "nô đùa", "nội bộ",
+            "nội trợ", "nông dân", "nông nghiệp", "nước mắt", "nước ngọt", "nước sôi", "nước rút", "nước uống", "nứt nẻ",
+
+            // Vần Q - S - T - V - X
+            "qua lại", "quá khứ", "quà cáp", "quản lý", "quảng cáo", "quảng đại", "quang cảnh", "quốc gia", "quốc tế",
+            "ra vào", "ra đi", "rừng rậm", "rực rỡ", "rắn rỏi", "rất tốt", "rộn ràng", "rộng rãi", "rút gọn", "rũ rượi",
+            "sa mạc", "sa sút", "sẵn sàng", "sáng chói", "sáng tạo", "sắp xếp", "sắc bén", "sắp tới", "sắt đá", "siêng năng",
+            "sinh hoạt", "sinh nhật", "sôi nổi", "sống động", "sông ngòi", "sơn ca", "sự nghiệp", "sự thật", "sức khỏe", "sức mạnh",
+            "tai nạn", "tài ba", "tài chính", "tài đức", "tài nguyên", "tài sản", "tài trợ", "tâm huyết", "tâm trạng",
+            "tân tiến", "tập thể", "tập trung", "tất cả", "tất bật", "tất nhiên", "thà rằng", "thả diều", "thái độ", "thảm họa",
+            "thần kỳ", "thần tốc", "thần thái", "thắng lợi", "thiên nhiên", "thiên tài", "thiết kế", "thông minh", "thời gian", "thời tiết",
+            "thu nhập", "thuận lợi", "thực phẩm", "thực tế", "tiến lên", "tiến sĩ", "tiết kiệm", "tiểu sử", "tin cậy", "tinh tế",
+            "tổ quốc", "tổ chức", "tự do", "tự hào", "tự nhiên", "từ bi", "từ điển", "từ giã", "từ ngữ", "từ thiện",
+            "va chạm", "vạch trần", "vạn vật", "vàng bạc", "vất vả", "vây quanh", "vẻ đẹp", "vẹn toàn", "việc làm", "viễn tưởng",
+            "vinh quang", "vô cùng", "vô địch", "vô hình", "vui sướng", "vui vẻ", "vườn tược", "vương giả", "vương quốc", "vững vàng",
+            "xa xôi", "xã hội", "xác định", "xanh biếc", "xinh đẹp", "xoay sở", "xuất sắc", "xuất chúng", "xung quanh", "xứng đáng"
+    );
+
+    private String currentWord = "";
+
+    @GetMapping("/webhook")
+    public String startGame() {
+        Random random = new Random();
+        currentWord = dictionary.get(random.nextInt(dictionary.size()));
+        return "Trò chơi bắt đầu! Từ đầu tiên là: <b>" + currentWord + "</b>. Hãy nối tiếp từ cuối!";
     }
 
-    private void initializeDictionary() {
-        List<String> rawWords = Arrays.asList(
-                // Nhóm từ thông dụng, dễ chơi (ưu tiên cho đầu game)
-                "chào cờ", "cờ bạc", "bạc mệnh", "mệnh lệnh", "lệnh truyền", "truyền kỳ", "kỳ tích", "tích cực", "cực nhọc", "nhọc nhằn",
-                "năng lượng", "lượng giác", "giác ngộ", "ngộ nhận", "nhận thức", "thức giấc", "giấc mơ", "mơ màng", "màng ảnh", "ảnh hưởng",
-                "hưởng thụ", "thụ động", "động lực", "lực sĩ", "sĩ quan", "quan sát", "sát cánh", "cánh đồng", "đồng lòng", "lòng vòng",
-                "vòng tròn", "tròn trịa", "trị giá", "giá trị", "trí tuệ", "tuệ mẫn", "mẫn cảm", "cảm ơn", "ơn huệ", "huệ trắng",
-                "trắng tinh", "tinh tươm", "tươm tất", "tất cả", "cả tin", "tin tưởng", "tưởng tượng", "tượng trưng", "trưng bày", "bày tỏ",
-                "tỏ tình", "tình cảm", "cảm xúc", "xúc động", "động viên", "viên mãn", "mãn nguyện", "nguyện ước", "ước mơ", "mơ mộng",
-                "mộng du", "du lịch", "lịch trình", "trình bày", "bày vẽ", "vẽ vời", "buồn bã", "bã trầu", "trầu cau", "cau mày",
-                "mày râu", "râu ria", "ria mép", "bàn ghế", "ghế đá", "đá bóng", "bóng bàn", "bàn bạc", "bạc tiền", "tiền tài",
-                "tài chính", "chính sách", "sách vở", "vở kịch", "kịch bản", "bản lĩnh", "lĩnh vực", "vực sâu", "sâu thẳm", "thừa nhận",
-                "nhận ra", "ra về", "về nguồn", "nguồn cội", "tài năng", "năng nổ", "tác giả", "tác phẩm", "ứng dụng", "dụng cụ",
-                "cụ thể", "thể thao", "thao trường", "hàng hóa", "hóa đơn", "đơn sơ", "sơ khai", "khai phá", "phá hoại", "họa mi",
-                "tử vong", "vong hồn", "hồn nhiên", "nhiên liệu", "liệu pháp", "pháp luật", "luật sư", "nhà cửa", "cửa sổ", "sổ sách",
-                "s sách báo", "báo chí", "chí hướng", "hướng dẫn", "dẫn dắt", "đất nước", "nước non", "non sông", "sông ngòi", "ngòi bút",
-                "bút mực", "mực tàu", "tàu xe", "xe cộ", "thời gian", "gian nan", "nan giải", "giải quyết", "quyết tâm", "tâm sự",
-                "sự nghiệp", "nghiệp vụ", "vụ việc", "việc làm", "làm ăn", "ăn uống", "nhớ nguồn", "nguồn mạch", "mạch máu", "máu lửa",
-                "lửa hồng", "hồng tâm", "tâm huyết", "mạch lạc", "lạc quan", "quan hệ", "hệ thống", "thống nhất", "nhất trí", "trí lực",
-                "lực lượng", "lượng thứ", "thứ bậc", "bậc thầy", "thầy giáo", "giáo dục", "dục vọng", "vọng tưởng", "tưởng nhớ",
-                "nhớ thương", "thương yêu", "yêu thương", "thương mến", "mến khách", "khách quan", "quan niệm", "niệm chú", "chú ý",
-                "ý kiến", "kiến thiết", "thiết kế", "kế hoạch", "hoạt động", "động đậy", "điềm đạm", "đạm bạc", "nhà nước", "nước hoa",
-                "hoa hồng", "hồng ngoại", "ngoại ô", "ô tô", "tô điểm", "điểm tô", "nhà xe", "xe đạp", "đạp xe", "xe hơi", "hơi thở",
-                "nhà hàng", "hàng quán", "quán xá", "lợi ích", "ích kỷ", "kỷ luật", "luật lệ", "thanh âm", "âm thanh", "thanh xuân",
-                "xuân sắc", "sắc màu", "hình ảnh", "thời sự", "sự việc", "thầm lặng", "lặng lẽ", "lẽ phải", "minh bạch", "sáng chói",
-                "chói lọi", "đèn pin", "pin sạc", "sạc điện", "điện thoại", "thoại ngữ", "ngữ pháp", "pháp định", "định mệnh",
-                "ký ức", "ức chế", "chế độ", "độ lượng", "thế giới", "giới hạn", "hạn chế", "chế tạo", "tạo lập", "lập trường",
-                "trường học", "học tập", "tập trung", "chung thủy", "thủy chung", "bình yên", "yên bình", "bình minh", "minh mẫn",
-                "tiết kiệm", "kiệm ước", "khoáng sản", "sản xuất", "xuất bản", "bản sắc", "sắc đẹp", "đẹp đẽ", "cày bừa", "bãi cát",
-                "cát tường", "tường tận", "tận tụy", "tạng người", "người đẹp", "đẹp trời", "trời đất", "đất liền"
-        );
+    @GetMapping("/webhook/play")
+    public String playWord(@RequestParam("word") String word) {
+        word = word.trim().toLowerCase();
 
-        for (String word : rawWords) {
-            addWordToDictionary(word);
-        }
-    }
+        // Tách tiếng cuối của từ hiện tại và tiếng đầu của từ người chơi
+        String[] currentParts = currentWord.split(" ");
+        String lastSyllableOfCurrent = currentParts[currentParts.length - 1];
 
-    private void addWordToDictionary(String word) {
-        String cleanedWord = word.trim().toLowerCase();
-        String[] parts = cleanedWord.split("\\s+");
-        if (parts.length == 2) {
-            String firstWord = parts[0];
-            wordDictionary.putIfAbsent(firstWord, new ArrayList<>());
-            List<String> list = wordDictionary.get(firstWord);
-            if (!list.contains(cleanedWord)) {
-                list.add(cleanedWord);
-            }
-        }
-    }
+        String[] userParts = word.split(" ");
 
-    private String getCurrentWord(HttpSession session) {
-        String word = (String) session.getAttribute("currentWord");
-        if (word == null) {
-            word = getRandomEasyWord(session);
-            session.setAttribute("currentWord", word);
-        }
-        return word;
-    }
-
-    private int getTurnCount(HttpSession session) {
-        Integer turns = (Integer) session.getAttribute("turnCount");
-        if (turns == null) {
-            turns = 0;
-            session.setAttribute("turnCount", turns);
-        }
-        return turns;
-    }
-
-    private void incrementTurn(HttpSession session) {
-        int turns = getTurnCount(session) + 1;
-        session.setAttribute("turnCount", turns);
-    }
-
-    private String getRandomEasyWord(HttpSession session) {
-        session.setAttribute("turnCount", 0);
-        List<String> allKeys = new ArrayList<>(wordDictionary.keySet());
-        String randomKey = allKeys.get(random.nextInt(allKeys.size()));
-        List<String> words = wordDictionary.get(randomKey);
-        return words.get(random.nextInt(words.size()));
-    }
-
-    @GetMapping
-    public String checkBot(HttpSession session) {
-        String currentWord = getCurrentWord(session);
-        String[] parts = currentWord.trim().split("\\s+");
-        String nextRequired = parts[parts.length - 1];
-        return "Đề bài hiện tại: <b>" + currentWord + "</b>. Lượt bạn, hãy nhập từ bắt đầu bằng tiếng: '<b>" + nextRequired + "</b>'";
-    }
-
-    @GetMapping("/reset")
-    public String resetGame(HttpSession session) {
-        String newWord = getRandomEasyWord(session);
-        session.setAttribute("currentWord", newWord);
-        String[] parts = newWord.trim().split("\\s+");
-        String nextRequired = parts[parts.length - 1];
-        return "Đã làm mới bàn chơi! Từ của hệ thống là: <b>" + newWord + "</b>. Lượt bạn, hãy nhập từ bắt đầu bằng tiếng: '<b>" + nextRequired + "</b>'";
-    }
-
-    @GetMapping("/play")
-    public String playGame(@RequestParam String word, HttpSession session) {
-        String userWord = word.trim().toLowerCase();
-        String[] userParts = userWord.split("\\s+");
-
+        // Kiểm tra định dạng từ gồm 2 tiếng
         if (userParts.length != 2) {
-            return "Quy định chỉ được nhập từ gồm đúng 2 tiếng (2 từ)!";
+            return "❌ Từ không hợp lệ! Vui lòng nhập đúng <b>định dạng gồm 2 tiếng</b> (Ví dụ: <i>an toàn</i>).<br>Từ hiện tại: <b>" + currentWord + "</b>";
         }
 
-        String currentWord = getCurrentWord(session);
-        String[] currentParts = currentWord.trim().split("\\s+");
-        String lastWordOfCurrent = currentParts[currentParts.length - 1];
-        String firstWordOfUser = userParts[0];
+        String firstSyllableOfUser = userParts[0];
 
-        if (!firstWordOfUser.equals(lastWordOfCurrent)) {
-            // Thay đổi câu báo lỗi khi người chơi nhập sai quy tắc (Bot cà khịa nhẹ)
-            return "Bạn hãy về học lại tiếng việt đi và hãy thử lại 😂";
+        // Kiểm tra quy tắc nối từ
+        if (!firstSyllableOfUser.equalsIgnoreCase(lastSyllableOfCurrent)) {
+            return "❌ Sai luật nối từ! Từ của bạn phải bắt đầu bằng tiếng <b>'" + lastSyllableOfCurrent + "'</b>.<br>Từ hiện tại: <b>" + currentWord + "</b>";
         }
 
-        incrementTurn(session);
-        int currentTurn = getTurnCount(session);
+        // Cập nhật từ mới của người chơi
+        currentWord = word;
 
-        String lastWordOfUser = userParts[userParts.length - 1];
-        List<String> possibleNextWords = wordDictionary.get(lastWordOfUser);
-        String matchedNext = null;
+        // Bot tìm từ tiếp theo bắt đầu bằng tiếng cuối của người chơi
+        String targetStart = userParts[userParts.length - 1];
+        String botReply = null;
 
-        if (possibleNextWords != null && !possibleNextWords.isEmpty()) {
-            List<String> validChoices = new ArrayList<>();
-            for (String w : possibleNextWords) {
-                if (!w.equals(userWord)) {
-                    validChoices.add(w);
-                }
-            }
-
-            if (!validChoices.isEmpty()) {
-                if (currentTurn < 5) {
-                    List<String> friendlyChoices = new ArrayList<>();
-                    for (String w : validChoices) {
-                        String[] p = w.split("\\s+");
-                        String nextKey = p[p.length - 1];
-                        if (wordDictionary.containsKey(nextKey) && !wordDictionary.get(nextKey).isEmpty()) {
-                            friendlyChoices.add(w);
-                        }
-                    }
-                    if (!friendlyChoices.isEmpty()) {
-                        matchedNext = friendlyChoices.get(random.nextInt(friendlyChoices.size()));
-                    } else {
-                        matchedNext = validChoices.get(random.nextInt(validChoices.size()));
-                    }
-                } else {
-                    matchedNext = validChoices.get(random.nextInt(validChoices.size()));
-                }
+        for (String w : dictionary) {
+            if (w.startsWith(targetStart + " ") && !w.equalsIgnoreCase(currentWord)) {
+                botReply = w;
+                break;
             }
         }
 
-        // Thay đổi câu thông báo khi Bot chịu thua (Người chơi thắng)
-        if (matchedNext == null) {
-            return "Bạn là 1 người tài ba ";
+        if (botReply == null) {
+            return "🎉 Chúc mừng bạn! Bạn đã làm bot phải chịu thua vì hết từ nối với tiếng <b>'" + targetStart + "'</b>!";
         }
 
-        session.setAttribute("currentWord", matchedNext);
-        String[] newParts = matchedNext.split("\\s+");
-        String nextRequired = newParts[newParts.length - 1];
+        currentWord = botReply;
+        return "✅ Chính xác! Bot nối tiếp từ: <b>" + botReply + "</b>.<br>Lượt bạn, nối từ bắt đầu bằng tiếng: <b>" + botReply.split(" ")[1] + "</b>";
+    }
 
-        return "Nối chuẩn! Bot đáp lại: <b>" + matchedNext + "</b>. Lượt bạn, từ tiếp theo phải bắt đầu bằng tiếng: '<b>" + nextRequired + "</b>'";
+    @GetMapping("/webhook/reset")
+    public String resetGame() {
+        Random random = new Random();
+        currentWord = dictionary.get(random.nextInt(dictionary.size()));
+        return "🔄 Đã bắt đầu ván mới! Từ xuất phát là: <b>" + currentWord + "</b>. Mời bạn đi trước!";
     }
 }
