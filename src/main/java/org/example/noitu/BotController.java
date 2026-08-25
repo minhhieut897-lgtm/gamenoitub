@@ -1,5 +1,6 @@
 package org.example.noitu;
 
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,73 +12,88 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @RestController
-public class BotController {
+public class BotController implements CommandLineRunner {
 
     private static Set<String> dictionary = new HashSet<>();
     private static List<String> starterWords = new ArrayList<>();
     private static boolean isLoaded = false;
 
-    // Khối static khởi động siêu tốc và an toàn tuyệt đối với file trong resources
-    static {
-        try {
-            InputStream inputStream = BotController.class.getClassLoader().getResourceAsStream("words.txt");
-            if (inputStream != null) {
-                Set<String> tempDict = new HashSet<>();
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        line = line.trim().toLowerCase();
-                        if (!line.isEmpty() && line.split("\\s+").length == 2) {
-                            tempDict.add(line);
-                        }
-                    }
-                }
-
-                List<String> tempStarters = new ArrayList<>();
-                for (String word : tempDict) {
-                    String[] parts = word.split(" ");
-                    String lastSyllable = parts[parts.length - 1];
-
-                    boolean hasNext = false;
-                    for (String w : tempDict) {
-                        if (w.startsWith(lastSyllable + " ")) {
-                            hasNext = true;
-                            break;
-                        }
-                    }
-
-                    if (hasNext && word.length() <= 15) {
-                        tempStarters.add(word);
-                    }
-                }
-
-                if (tempStarters.isEmpty()) {
-                    tempStarters.addAll(tempDict);
-                }
-
-                dictionary = tempDict;
-                starterWords = tempStarters;
-                isLoaded = true;
-                System.out.println("Đã nạp thành công toàn bộ " + dictionary.size() + " từ từ file words.txt!");
-            } else {
-                System.err.println("Không tìm thấy file words.txt trong thư mục resources!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private String currentWord = "an ninh";
     private int turnCount = 0;
 
+    // Dùng CommandLineRunner để ứng dụng mở cổng web NGAY LẬP TỨC cho Render nhận diện,
+    // việc nạp 53k từ sẽ chạy ngầm ở luồng riêng không làm chậm quá trình khởi động.
+    @Override
+    public void run(String... args) {
+        new Thread(() -> {
+            try {
+                InputStream inputStream = BotController.class.getClassLoader().getResourceAsStream("words.txt");
+                if (inputStream != null) {
+                    Set<String> tempDict = new HashSet<>();
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            line = line.trim().toLowerCase();
+                            if (!line.isEmpty() && line.split("\\s+").length == 2) {
+                                tempDict.add(line);
+                            }
+                        }
+                    }
+
+                    List<String> tempStarters = new ArrayList<>();
+                    for (String word : tempDict) {
+                        String[] parts = word.split(" ");
+                        String lastSyllable = parts[parts.length - 1];
+
+                        boolean hasNext = false;
+                        for (String w : tempDict) {
+                            if (w.startsWith(lastSyllable + " ")) {
+                                radix: {
+                                    hasNext = true;
+                                    break radix;
+                                }
+                            }
+                        }
+
+                        if (hasNext && word.length() <= 15) {
+                            tempStarters.add(word);
+                        }
+                    }
+
+                    if (tempStarters.isEmpty()) {
+                        tempStarters.addAll(tempDict);
+                    }
+
+                    synchronized (BotController.class) {
+                        dictionary = tempDict;
+                        starterWords = tempStarters;
+                        if (!starterWords.isEmpty()) {
+                            currentWord = starterWords.get(new Random().nextInt(starterWords.size()));
+                        }
+                        isLoaded = true;
+                    }
+
+                    System.out.println("Đã nạp thành công toàn bộ " + dictionary.size() + " từ từ file words.txt ở luồng ngầm!");
+                } else {
+                    System.err.println("Không tìm thấy file words.txt trong thư mục resources!");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
     @GetMapping("/")
     public String home() {
+        if (!isLoaded) {
+            return "Bot Nối Từ đang chạy! Trạng thái từ điển: ⏳ Đang tải ngầm 53k từ...";
+        }
         return "Bot Nối Từ đang chạy! Tổng số từ trong từ điển: " + dictionary.size();
     }
 
     @GetMapping("/webhook")
     public String startGame() {
-        if (!isLoaded || starterWords.isEmpty()) return "⏳ Kho từ vựng đang khởi tạo...";
+        if (!isLoaded || starterWords.isEmpty()) return "⏳ Kho từ vựng đang được tải ngầm, vui lòng thử lại sau vài giây!";
         Random random = new Random();
         turnCount = 0;
         currentWord = starterWords.get(random.nextInt(starterWords.size()));
@@ -86,7 +102,7 @@ public class BotController {
 
     @GetMapping("/webhook/play")
     public String playWord(@RequestParam("word") String word) {
-        if (!isLoaded) return "⏳ Hệ thống đang tải từ điển...";
+        if (!isLoaded) return "⏳ Hệ thống đang tải từ điển, vui lòng đợi một chút!";
 
         word = word.trim().replaceAll("\\s+", " ").toLowerCase();
 
