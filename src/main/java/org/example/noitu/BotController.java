@@ -1,108 +1,73 @@
 package org.example.noitu;
 
+import jakarta.annotation.PostConstruct; // Hoặc javax.annotation.PostConstruct tùy version Spring Boot của bạn
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 @RestController
 public class BotController {
 
-    // Kho từ vựng đầy đủ (Chứa toàn bộ từ để nối, phản đòn và cho người chơi nhập)
-    private final List<String> dictionary = Arrays.asList(
-            // Kho từ vựng nền tảng cũ
-            "an toàn", "an ninh", "an ủi", "áp lực", "ẩn ý", "áo dài", "áo ấm", "âm thanh", "âm nhạc", "ánh sáng",
-            "bà con", "ba ba", "bà ngoại", "bà nội", "bác sĩ", "bạc đãi", "bạch tuộc", "bàn bạc",
-            "bàn chân", "bàn ghế", "bàn là", "bàn tay", "bản sắc", "bản tin", "bảng đen", "bánh chưng", "bánh dày", "bánh mì",
-            "bảo tàng", "bảo vệ", "bắc cầu", "bắc hải", "bập bẹ", "bật mí", "bầu trời", "bầu bạn", "béo tốt", "bênh vực",
-            "bình an", "bình minh", "bình tĩnh", "bí ẩn", "bí mật", "bơ vơ", "bờ biển", "bờ vực", "bụi bặm", "buồn bã",
-            "buồn vui", "buổi chiều", "buổi sáng", "buổi trưa", "búp bê", "bứt rứt", "bước chân", "bướng bỉnh",
-            "ca dao", "ca hát", "ca sĩ", "cá chép", "cá heo", "cá mập", "cá voi", "can đảm", "can thiệp", "canh cánh",
-            "cao cấp", "cao ngạo", "cao ốc", "cào cào", "càu nhàu", "câu cá", "câu lạc bộ", "cầu chì", "cầu lông", "cầu vồng",
-            "cây cối", "cây cỏ", "cha mẹ", "chai lọ", "chăm chỉ", "chăm sóc", "chân thành", "chân tay", "chấp nhận", "chất phác",
-            "chật chội", "chầu chực", "chế biến", "chế độ", "chiến thắng", "chiến tranh", "chim chóc", "chính trị", "chóng mặt", "chu đáo",
-            "chuẩn bị", "chuồn chuồn", "chuyện trò", "chữ viết", "co giật", "co ro", "cơ bắp", "cơ hội", "cơ sở", "con cháu",
-            "con đường", "con người", "côn trùng", "công bằng", "công nghệ", "công nhân", "công việc", "cồng kềnh", "cốt lõi", "cố gắng",
-            "cổ kính", "cổ vũ", "cục cằn", "cuộc đời", "cuộc sống", "cuốn hút", "cuộn tròn", "cười duyên", "cương quyết", "cương vị",
-            "da dẻ", "da cam", "da thịt", "dài dòng", "dăm ba", "dân cư", "dân gian", "dân tộc", "dâng hiến", "dấu hiệu",
-            "dấu vết", "dầu gió", "dầu khí", "dạy học", "dăm bông", "dần dần", "dâng trào", "dập dềnh", "dễ dãi", "dễ chịu",
-            "dễ thương", "du lịch", "du mục", "du xuân", "dung dịch", "dũng cảm", "dữ dội", "dư dả", "dư âm", "dương lịch",
-            "đá banh", "đá quý", "đà điểu", "đại gia", "đại dương", "đại học", "đại lý", "đảm bảo", "đảm đang", "đầm lầy",
-            "đất đai", "đất liền", "đặc biệt", "đặc sản", "đăng ký", "đăng quang", "đắm say", "đầu bếp", "đầu độc", "đầu tiên",
-            "đập phá", "đất nước", "đầy đủ", "đẹp đẽ", "đêm ngày", "đêm tối", "đi đứng", "đi lại", "điểm mấu", "điểm số",
-            "điện ảnh", "điện thoại", "điều kiện", "định mệnh", "đoàn kết", "đoán mò", "đỏ rực", "đói kém", "đơn côi", "đơn giản",
-            "đời sống", "đu đủ", "đúng đắn", "đường đi", "đường phố", "đương đầu", "được việc",
-            "gà gô", "gà trống", "gác xép", "gai góc", "giao lưu", "giảm giá", "gian khổ", "gian nan", "giang sơn", "giao tiếp",
-            "giấu giếm", "giết chóc", "giễu cợt", "giảm sút", "giản dị", "giáo dục", "giáo sư", "giàu có", "giấc mơ", "giếng nước",
-            "giữ gìn", "giữa đường", "giúp đỡ", "gia đình", "gia tài", "gia vị", "gọn gàng", "gọi điện", "gù lưng", "gửi gắm",
-            "hà mã", "hà tiện", "hạ bệ", "hạ cánh", "hạ long", "hải sản", "hải tặc", "hải yến", "hào hứng", "hào phóng",
-            "hành động", "hành khách", "hành tinh", "hạnh phúc", "hấp dẫn", "hắt hiu", "hết lòng", "hiền hòa", "hiền lành", "hiểu biết",
-            "hiệu quả", "hoa hồng", "hoa quả", "hoài niệm", "hoàn hảo", "hoảng sợ", "hoạt động", "họa sĩ", "học hỏi", "hội chợ",
-            "hôm nay", "hồng hào", "hợp tác", "hờn dỗi", "hướng dẫn", "hướng dương", "hương vị", "hưu trí", "hy sinh", "hy vọng",
-            "kỳ bí", "kỳ diệu", "kỹ sư", "kỷ niệm", "kỷ luật", "kẻ cắp", "kéo co", "kế hoạch", "kết quả", "khen ngợi",
-            "kho báu", "khoa học", "khoẻ mạnh", "khôn ngoan", "không khí", "không gian", "khó khăn", "khởi nghiệp", "khủng long", "khuyến khích",
-            "la đà", "la hét", "lá cờ", "lá gan", "lạc quan", "lai lịch", "làm ăn", "làm việc", "làng xóm", "lan tràn",
-            "láng giềng", "lanh lợi", "lão hóa", "lễ hội", "lễ phép", "lịch sự", "lịch trình", "liên kết", "liên lạc", "long trọng",
-            "lòng vòng", "lợi ích", "lớn lao", "lời nói", "lương tâm", "lướt ván", "lược sử", "lũ lụt", "luyện tập", "lững lờ",
-            "ma quỷ", "ma lực", "mạ kẽm", "mang vác", "manh mối", "màu mỡ", "màu sắc", "máy bay", "máy tính", "mây mù",
-            "mật mã", "mật ong", "mẫu giáo", "mẫu mã", "mận đào", "mất mát", "mật thiết", "mềm mại", "mến khách", "miền nam",
-            "miền trung", "miền bắc", "miền núi", "miễn phí", "minh bạch", "mơ màng", "mơ ước", "mở cửa", "mở rộng", "mưa gió",
-            "mưu trí", "mực tàu", "muôn màu", "muôn năm", "mượt mà", "na ná", "náo động", "nam giới", "năm tháng",
-            "năng lực", "năng động", "nắng ấm", "nền tảng", "nếp sống", "nết na", "ngà voi", "ngạc nhiên", "ngân hàng", "ngây thơ",
-            "nghiêm túc", "ngoại ô", "ngọc trai", "nguồn gốc", "người lớn", "người mẫu", "nhà cửa", "nhà ga", "nhà nước", "nhà thơ",
-            "nhanh nhẹn", "nhiệt huyết", "nhịp điệu", "nhỏ nhẻ", "nhung lụa", "niềm tin", "no đủ", "nô đùa", "nội bộ",
-            "nội trợ", "nông dân", "nông nghiệp", "nước mắt", "nước ngọt", "nước sôi", "nước rút", "nước uống", "nứt nẻ",
-            "qua lại", "quá khứ", "quà cáp", "quản lý", "quảng cáo", "quảng đại", "quang cảnh", "quốc gia", "quốc tế",
-            "ra vào", "ra đi", "rừng rậm", "rực rỡ", "rắn rỏi", "rất tốt", "rộn ràng", "rộng rãi", "rút gọn", "rũ rượi",
-            "sa mạc", "sa sút", "sẵn sàng", "sáng chói", "sáng tạo", "sắp xếp", "sắc bén", "sắp tới", "sắt đá", "siêng năng",
-            "sinh hoạt", "sinh nhật", "sôi nổi", "sống động", "sông ngòi", "sơn ca", "sự nghiệp", "sự thật", "sức khỏe", "sức mạnh",
-            "tai nạn", "tài ba", "tài chính", "tài đức", "tài nguyên", "tài sản", "tài trợ", "tâm huyết", "tâm trạng",
-            "tân tiến", "tập thể", "tập trung", "tất cả", "tất bật", "tất nhiên", "thà rằng", "thả diều", "thái độ", "thảm họa",
-            "thần kỳ", "thần tốc", "thần thái", "thắng lợi", "thiên nhiên", "thiên tài", "thiết kế", "thông minh", "thời gian", "thời tiết",
-            "thu nhập", "thuận lợi", "thực phẩm", "thực tế", "tiến lên", "tiến sĩ", "tiết kiệm", "tiểu sử", "tin cậy", "tinh tế",
-            "tổ quốc", "tổ chức", "tự do", "tự hào", "tự nhiên", "từ bi", "từ điển", "từ giã", "từ ngữ", "từ thiện",
-            "va chạm", "vạch trần", "vạn vật", "vàng bạc", "vất vả", "vây quanh", "vẻ đẹp", "vẹn toàn", "việc làm", "viễn tưởng",
-            "vinh quang", "vô cùng", "vô địch", "vô hình", "vui sướng", "vui vẻ", "vườn tược", "vương giả", "vương quốc", "vững vàng",
-            "xa xôi", "xã hội", "xác định", "xanh biếc", "xinh đẹp", "xoay sở", "xuất sắc", "xuất chúng", "xung quanh", "xứng đáng",
-
-            // Nhóm bổ sung
-            "hồng nhạt", "hồng phấn", "xanh ngọc", "xanh rêu", "vàng chanh", "đỏ tươi", "cáp treo", "cầu thang",
-            "thang máy", "máy giặt", "tủ lạnh", "cửa gỗ", "cầu sắt", "nồi nhôm", "cơm nóng", "kem lạnh", "bàn tròn",
-            "xe đạp", "xe máy", "xe hơi", "xe ôm", "xe buýt", "xe điện", "xe tải", "tàu hỏa", "tàu thủy",
-            "máy bay", "thuyền máy", "canô nhỏ", "phà biển", "xích lô", "trực thăng", "tàu điện",
-            "trời mưa", "trời nắng", "mưa rào", "gió bão", "sấm chớp", "mây mù", "nắng gắt", "gió lạnh",
-            "tuyết rơi", "sương muối", "bão lũ", "khí hậu", "trời oi", "rét đậm", "nắng ấm", "gió nhẹ",
-            "cây bàng", "cây phượng", "hoa sen", "cỏ dại", "lá lốt", "dây leo", "gỗ sưa", "tre ngà",
-            "con hổ", "con báo", "sư tử", "gấu trúc", "chim sẻ", "đại bàng", "cá sấu", "rắn độc", "ếch nhái",
-            "bay bổng", "bay cao", "lùn tịt", "thấp bé", "nhảy múa", "chạy nhảy", "đi đứng", "nói năng",
-            "cười nói", "bay xa", "chạy nhanh", "đi chậm", "đứng lên", "ngồi xuống", "nằm dài", "quay cuồng",
-            "vui sướng", "buồn bã", "giận dữ", "lo lắng", "sợ hãi", "hồi hộp", "bấn loạn", "thất vọng",
-            "hân hoan", "phấn khởi", "ấm áp", "cô đơn", "tủi thân", "nghẹn ngào", "sung sướng", "tức giận"
-    );
-
-    // Danh sách từ thân thuộc dùng để BOT ra đề ở những lượt đầu
-    // ĐÃ LỌC BỎ HOÀN TOÀN các từ có nguy cơ cụt (không có từ nào khác trong từ điển nối tiếp tiếng cuối của nó)
-    private final List<String> simpleStarterWords = Arrays.asList(
-            "bà con", "ba ba", "bác sĩ", "bàn tay", "bánh mì", "bảo vệ", "bầu trời",
-            "ca sĩ", "cá chép", "cá heo", "cây cối", "cha mẹ", "chăm chỉ", "chân thành",
-            "da dẻ", "dễ thương", "đá banh", "đất nước", "đẹp đẽ", "điện thoại",
-            "gà trống", "gia đình", "gọi điện", "hà mã", "hành động", "hạnh phúc", "hoa hồng",
-            "lá cờ", "làm việc", "làng xóm", "máy bay", "máy tính", "mưa gió", "năm tháng",
-            "nhà cửa", "nước ngọt", "quà cáp", "sông ngòi", "thả diều", "vui vẻ",
-            "hồng nhạt", "xanh ngọc", "vàng chanh", "đỏ tươi", "cáp treo", "cầu thang", "thang máy", "máy giặt",
-            "cơm nóng", "cửa gỗ", "bàn tròn", "kem lạnh",
-            "xe đạp", "xe máy", "xe buýt", "tàu hỏa", "trời mưa", "mưa rào", "gió bão",
-            "cây bàng", "hoa sen", "con hổ", "sư tử", "chim sẻ"
-    );
+    private List<String> dictionary = new ArrayList<>();
+    private List<String> simpleStarterWords = new ArrayList<>();
 
     private String currentWord = "";
     private int turnCount = 0;
 
+    // Tự động đọc file words.txt từ thư mục resources khi ứng dụng vừa khởi động
+    @PostConstruct
+    public void initDictionary() {
+        try {
+            ClassPathResource resource = new ClassPathResource("words.txt");
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim().toLowerCase();
+                    // Chỉ lấy các từ chuẩn gồm đúng 2 tiếng (có 1 khoảng trắng ở giữa)
+                    if (!line.isEmpty() && line.split("\\s+").length == 2) {
+                        dictionary.add(line);
+                    }
+                }
+            }
+
+            // LỌC THÔNG MINH: Lọc bỏ những từ mà khi bot ra đề sẽ bị "cụt" (không có từ nào khác nối tiếp được)
+            // Chỉ giữ lại các từ an toàn để bot dùng làm từ ra đề ở các lượt đầu
+            for (String word : dictionary) {
+                String[] parts = word.split(" ");
+                String lastSyllable = parts[parts.length - 1];
+
+                // Kiểm tra xem trong từ điển có từ nào bắt đầu bằng lastSyllable không
+                boolean hasNextWord = false;
+                for (String w : dictionary) {
+                    if (w.startsWith(lastSyllable + " ") && !w.equalsIgnoreCase(word)) {
+                        hasNextWord = true;
+                        break;
+                    }
+                }
+
+                // Nếu có từ nối tiếp và từ này ngắn gọn (dưới 15 ký tự), đưa vào danh sách từ ra đề của bot
+                if (hasNextWord && word.length() <= 15) {
+                    simpleStarterWords.add(word);
+                }
+            }
+
+            System.out.println("Đã nạp thành công " + dictionary.size() + " từ từ file words.txt!");
+            System.out.println("Số lượng từ an toàn để bot ra đề: " + simpleStarterWords.size());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @GetMapping("/webhook")
     public String startGame() {
+        if (simpleStarterWords.isEmpty()) return "Kho từ vựng chưa sẵn sàng!";
         Random random = new Random();
         turnCount = 0;
         currentWord = simpleStarterWords.get(random.nextInt(simpleStarterWords.size()));
@@ -118,9 +83,9 @@ public class BotController {
 
         String[] userParts = word.split(" ");
 
-        // 1. Kiểm tra định dạng VIP (đúng 2 tiếng)
+        // 1. Kiểm tra định dạng (đúng 2 tiếng)
         if (userParts.length != 2) {
-            return "❌ <b>Lỗi định dạng VIP:</b> Vui lòng nhập chính xác <b>một từ gồm đúng 2 tiếng</b> (Ví dụ: <i>an toàn</i>).<br>Từ hiện tại: <b>" + currentWord + "</b>";
+            return "❌ <b>Lỗi định dạng:</b> Vui lòng nhập chính xác <b>một từ gồm đúng 2 tiếng</b>.<br>Từ hiện tại: <b>" + currentWord + "</b>";
         }
 
         String firstSyllableOfUser = userParts[0];
@@ -130,9 +95,9 @@ public class BotController {
             return "❌ <b>Sai luật nối từ!</b> Từ của bạn phải bắt đầu bằng tiếng <b>'" + lastSyllableOfCurrent + "'</b>.<br>Từ hiện tại: <b>" + currentWord + "</b>";
         }
 
-        // 3. Kiểm tra từ điển hợp lệ
+        // 3. Kiểm tra từ điển hợp lệ (Tra cứu trực tiếp trong kho 53k+ từ từ file words.txt)
         if (!dictionary.contains(word)) {
-            return "❌ <b>Từ không hợp lệ!</b> Từ này không có trong kho từ vựng tiếng Việt của game.<br>Từ hiện tại: <b>" + currentWord + "</b>";
+            return "❌ <b>Từ không hợp lệ!</b> Từ này không có trong từ điển tiếng Việt.<br>Từ hiện tại: <b>" + currentWord + "</b>";
         }
 
         currentWord = word;
@@ -141,17 +106,19 @@ public class BotController {
         String targetStart = userParts[userParts.length - 1];
         String botReply = null;
 
-        // Ưu tiên chọn từ dễ trong 3 lượt đầu từ danh sách an toàn
-        if (turnCount < 3) {
-            for (String w : simpleStarterWords) {
-                if (w.startsWith(targetStart + " ") && !w.equalsIgnoreCase(currentWord) && dictionary.contains(w)) {
+        // Ưu tiên chọn từ dễ trong 3 lượt đầu
+        if (turnCount < 3 && !simpleStarterWords.isEmpty()) {
+            Random rand = new Random();
+            for (int i = 0; i < 20; i++) { // Thử tìm ngẫu nhiên vài lần cho mượt
+                String w = simpleStarterWords.get(rand.nextInt(simpleStarterWords.size()));
+                if (w.startsWith(targetStart + " ") && !w.equalsIgnoreCase(currentWord)) {
                     botReply = w;
                     break;
                 }
             }
         }
 
-        // Sau 3 lượt hoặc nếu chưa tìm thấy, quét toàn bộ kho từ (sử dụng cả từ cảm xúc, từ khó để phản đòn người chơi)
+        // Nếu chưa tìm thấy, quét toàn bộ kho 53k+ từ (dùng cả các từ khó để phản đòn người chơi)
         if (botReply == null) {
             for (String w : dictionary) {
                 if (w.startsWith(targetStart + " ") && !w.equalsIgnoreCase(currentWord)) {
@@ -161,9 +128,9 @@ public class BotController {
             }
         }
 
-        // TRƯỜNG HỢP 1: Người chơi thắng (Bot bí đường)
+        // TRƯỜNG HỢP: Người chơi thắng (Bot bí đường phản đòn)
         if (botReply == null) {
-            return "VICTORY:🎉 Bạn đã thắng tôi rồi!";
+            return "VICTORY:🎉 Bạn quá giỏi, tôi đã bí đường và xin hàng!";
         }
 
         currentWord = botReply;
@@ -172,6 +139,7 @@ public class BotController {
 
     @GetMapping("/webhook/reset")
     public String resetGame() {
+        if (simpleStarterWords.isEmpty()) return "Kho từ vựng chưa sẵn sàng!";
         Random random = new Random();
         turnCount = 0;
         currentWord = simpleStarterWords.get(random.nextInt(simpleStarterWords.size()));
